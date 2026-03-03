@@ -1,0 +1,17 @@
+# Fichiers de build
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE
+.idea/
+.vscode/
+
+# Fichiers locaux
+*.iml
+*.log
+*.lock
+*.swp
+.DS_Store
+.flutter-plugins-dependencies

@@ -33,7 +33,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final results = await Future.wait([
+      final results = await Future.wait<dynamic>([
         _api.getMonMenage(),
         _api.getMonScore(),
         _auth.getNom(),
