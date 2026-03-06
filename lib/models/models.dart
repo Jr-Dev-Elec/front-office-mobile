@@ -26,18 +26,18 @@ class Menage {
   });
 
   factory Menage.fromJson(Map<String, dynamic> j) => Menage(
-    id: j['id'] ?? '',
-    code: j['code'] ?? '',
-    nomChef: j['nomChef'] ?? '',
-    hasTv: j['aTelevision'] ?? false,
-    hasRadio: j['aRadio'] ?? false,
-    hasMotorcycle: j['aMoto'] ?? false,
-    hasCar: j['aVoiture'] ?? false,
-    isOwner: j['statutHabitation'] == 'PROPRIETAIRE',
-    nombreResidents: j['nombreResidents'] ?? 0,
-    categorie: j['categorie'],
-    score: j['score'],
-  );
+        id:              j['id'] ?? '',
+        code:            j['code'] ?? '',
+        nomChef:         j['nomChef'] ?? '',
+        hasTv:           j['aTelevision'] ?? false,
+        hasRadio:        j['aRadio'] ?? false,
+        hasMotorcycle:   j['aMoto'] ?? false,
+        hasCar:          j['aVoiture'] ?? false,
+        isOwner:         j['statutHabitation'] == 'PROPRIETAIRE',
+        nombreResidents: j['nombreResidents'] ?? 0,
+        categorie:       j['categorie'],
+        score:           j['score'],
+      );
 }
 
 class Resident {
@@ -66,16 +66,16 @@ class Resident {
   String get nomComplet => '$prenom $nom';
 
   factory Resident.fromJson(Map<String, dynamic> j) => Resident(
-    id: j['id'] ?? '',
-    nom: j['nom'] ?? '',
-    prenom: j['prenom'] ?? '',
-    cni: j['numeroCni'] ?? '',
-    nationalite: j['nationalite'] ?? '',
-    dateNaissance: j['dateNaissance'] ?? '',
-    trancheSalariale: j['trancheSalariale'] ?? '',
-    diplome: j['diplome'] ?? '',
-    estChef: j['chef'] ?? false,
-  );
+        id:              j['id'] ?? '',
+        nom:             j['nom'] ?? '',
+        prenom:          j['prenom'] ?? '',
+        cni:             j['numeroCni'] ?? '',
+        nationalite:     j['nationalite'] ?? '',
+        dateNaissance:   j['dateNaissance'] ?? '',
+        trancheSalariale: j['trancheSalariale'] ?? '',
+        diplome:         j['niveauDiplome'] ?? '',  // ← niveauDiplome côté backend
+        estChef:         j['chef'] ?? false,
+      );
 }
 
 class ChefLoginResponse {
@@ -96,16 +96,15 @@ class ChefLoginResponse {
   });
 
   factory ChefLoginResponse.fromJson(Map<String, dynamic> j) => ChefLoginResponse(
-    token: j['token'] ?? '',
-    refreshToken: j['refreshToken'] ?? '',
-    chefId: j['chefId'] ?? '',
-    menageId: j['menageId'] ?? '',
-    nomComplet: j['nomComplet'] ?? '',
-    role: j['role'] ?? 'CHEF_MENAGE',
-  );
+        token:        j['accessToken'] ?? '',   // ← accessToken
+        refreshToken: j['refreshToken'] ?? '',
+        chefId:       j['userId'] ?? '',        // ← userId
+        menageId:     j['menageId'] ?? '',
+        nomComplet:   j['fullName'] ?? '',      // ← fullName
+        role:         j['role'] ?? 'CHEF_MENAGE',
+      );
 }
 
-// ========== NOUVEAU MODÈLE AJOUTÉ ==========
 class ScoringInfo {
   final int score;
   final int rank;
@@ -121,13 +120,11 @@ class ScoringInfo {
     required this.description,
   });
 
-  factory ScoringInfo.fromJson(Map<String, dynamic> json) {
-    return ScoringInfo(
-      score: json['score'] ?? 0,
-      rank: json['rank'] ?? 0,
-      total: json['total'] ?? 0,
-      categorie: json['categorie'] ?? 'Non classé',
-      description: json['description'] ?? '',
-    );
-  }
+  factory ScoringInfo.fromJson(Map<String, dynamic> j) => ScoringInfo(
+        score:       j['score'] ?? 0,
+        rank:        j['rank'] ?? 0,
+        total:       j['total'] ?? 0,
+        categorie:   j['categorie'] ?? 'Non classé',
+        description: j['description'] ?? '',
+      );
 }

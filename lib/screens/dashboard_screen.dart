@@ -18,11 +18,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final _api  = ApiService();
   final _auth = AuthService();
 
-  Menage?      _menage;
-  ScoringInfo? _scoring;
-  String?      _nom;
-  bool         _loading = true;
-  String?      _error;
+  Menage? _menage;
+  String? _nom;
+  bool    _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -35,13 +34,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final results = await Future.wait<dynamic>([
         _api.getMonMenage(),
-        _api.getMonScore(),
         _auth.getNom(),
       ]);
       setState(() {
-        _menage  = results[0] as Menage;
-        _scoring = results[1] as ScoringInfo;
-        _nom     = results[2] as String?;
+        _menage = results[0] as Menage;
+        _nom    = results[1] as String?;
       });
     } catch (e) {
       setState(() { _error = e.toString().replaceAll('Exception: ', ''); });
@@ -66,16 +63,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1B5E20),
         elevation: 0,
-        title: Text('Mon Espace', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
+        title: Text('Mon Espace',
+            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _load,
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: _logout,
-          ),
+          IconButton(icon: const Icon(Icons.refresh, color: Colors.white), onPressed: _load),
+          IconButton(icon: const Icon(Icons.logout, color: Colors.white),  onPressed: _logout),
         ],
       ),
       body: _loading
@@ -90,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       children: [
                         _buildHeader(),
-                        _buildScoringCard(),
+                        _buildCategoriCard(),
                         _buildInfoCard(),
                         _buildEquipementsCard(),
                         _buildActions(),
@@ -102,26 +94,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ── Header ────────────────────────────────────────────────────────────────
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 30),
       decoration: const BoxDecoration(
         color: Color(0xFF1B5E20),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
+          bottomLeft:  Radius.circular(30),
           bottomRight: Radius.circular(30),
         ),
       ),
       child: Row(
         children: [
           Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(16),
-            ),
+            width: 56, height: 56,
+            decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(16)),
             child: const Icon(Icons.person, color: Colors.white, size: 30),
           ),
           const SizedBox(width: 16),
@@ -135,10 +122,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  'Code: ${_menage?.code ?? ''}',
-                  style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
-                ),
+                Text('Code: ${_menage?.code ?? ''}',
+                    style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12)),
               ],
             ),
           ),
@@ -147,13 +132,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ── Carte Score + Catégorie ───────────────────────────────────────────────
-  Widget _buildScoringCard() {
-    if (_scoring == null) return const SizedBox.shrink();
-
-    final cat   = _scoring!.categorie;
+  Widget _buildCategoriCard() {
+    if (_menage == null) return const SizedBox.shrink();
+    final cat   = _menage!.categorie ?? 'NON_VULNERABLE';
     final color = Color(AppConfig.categorieColors[cat] ?? 0xFF4CAF50);
     final label = AppConfig.categorieLabels[cat] ?? cat;
+    final score = _menage!.score ?? 0;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
@@ -169,18 +153,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Catégorie Sociale', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                Text('Catégorie Sociale',
+                    style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
                 const Icon(Icons.verified_rounded, color: Colors.white, size: 22),
               ],
             ),
             const SizedBox(height: 12),
-            Text(label, style: GoogleFonts.poppins(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(label,
+                style: GoogleFonts.poppins(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            // Barre de progression du score
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
-                value: (_scoring!.score / 100).clamp(0.0, 1.0),
+                value: (score / 100).clamp(0.0, 1.0),
                 backgroundColor: Colors.white30,
                 valueColor: const AlwaysStoppedAnimation(Colors.white),
                 minHeight: 8,
@@ -191,33 +176,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Score', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
-                Text('${_scoring!.score} / 100 pts', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+                Text('$score / 100 pts',
+                    style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(_scoring!.description, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 11), textAlign: TextAlign.center),
           ],
         ),
       ),
     );
   }
 
-  // ── Informations du Ménage ────────────────────────────────────────────────
   Widget _buildInfoCard() {
     if (_menage == null) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8, offset: const Offset(0, 2))]),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2))],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Mon Ménage', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15, color: const Color(0xFF1B5E20))),
+            Text('Mon Ménage',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15, color: const Color(0xFF1B5E20))),
             const SizedBox(height: 12),
-            _infoRow(Icons.home_outlined, 'Code ménage', _menage!.code),
-            _infoRow(Icons.person_outline, 'Chef', _menage!.nomChef),
-            _infoRow(Icons.people_outline, 'Résidents', '${_menage!.nombreResidents} personne(s)'),
+            _infoRow(Icons.home_outlined,   'Code ménage', _menage!.code),
+            _infoRow(Icons.person_outline,  'Chef',        _menage!.nomChef),
+            _infoRow(Icons.people_outline,  'Résidents',   '${_menage!.nombreResidents} personne(s)'),
             _infoRow(
               _menage!.isOwner ? Icons.house_rounded : Icons.apartment_rounded,
               'Logement',
@@ -229,28 +217,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ── Équipements ───────────────────────────────────────────────────────────
   Widget _buildEquipementsCard() {
     if (_menage == null) return const SizedBox.shrink();
     final equips = [
-      {'icon': Icons.tv_rounded,         'label': 'TV',      'val': _menage!.hasTv},
-      {'icon': Icons.radio_rounded,      'label': 'Radio',   'val': _menage!.hasRadio},
-      {'icon': Icons.two_wheeler_rounded,'label': 'Moto',    'val': _menage!.hasMotorcycle},
-      {'icon': Icons.directions_car,     'label': 'Voiture', 'val': _menage!.hasCar},
+      {'icon': Icons.tv_rounded,          'label': 'TV',      'val': _menage!.hasTv},
+      {'icon': Icons.radio_rounded,       'label': 'Radio',   'val': _menage!.hasRadio},
+      {'icon': Icons.two_wheeler_rounded, 'label': 'Moto',    'val': _menage!.hasMotorcycle},
+      {'icon': Icons.directions_car,      'label': 'Voiture', 'val': _menage!.hasCar},
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8, offset: const Offset(0, 2))]),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2))],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Équipements', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15, color: const Color(0xFF1B5E20))),
+            Text('Équipements',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15, color: const Color(0xFF1B5E20))),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: equips.map((e) => _equipBadge(e['icon'] as IconData, e['label'] as String, e['val'] as bool)).toList(),
+              children: equips
+                  .map((e) => _equipBadge(e['icon'] as IconData, e['label'] as String, e['val'] as bool))
+                  .toList(),
             ),
           ],
         ),
@@ -258,7 +252,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ── Actions rapides ───────────────────────────────────────────────────────
   Widget _buildActions() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -279,8 +272,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Mes Résidents', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20), fontSize: 15)),
-                    Text('Voir les membres de mon ménage', style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 12)),
+                    Text('Mes Résidents',
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20), fontSize: 15)),
+                    Text('Voir les membres de mon ménage',
+                        style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 12)),
                   ],
                 ),
               ),
@@ -319,7 +314,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 4),
         Text(label, style: GoogleFonts.poppins(fontSize: 11, color: hasIt ? const Color(0xFF1B5E20) : Colors.grey[400])),
-        Icon(hasIt ? Icons.check_circle : Icons.cancel, size: 14, color: hasIt ? Colors.green : Colors.grey[400]),
+        Icon(hasIt ? Icons.check_circle : Icons.cancel,
+            size: 14, color: hasIt ? Colors.green : Colors.grey[400]),
       ],
     );
   }
@@ -339,7 +335,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onPressed: _load,
               icon: const Icon(Icons.refresh),
               label: const Text('Réessayer'),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B5E20), foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1B5E20), foregroundColor: Colors.white),
             ),
           ],
         ),

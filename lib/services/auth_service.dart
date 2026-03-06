@@ -1,35 +1,86 @@
 import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../models/models.dart';
+
 class AuthService {
-  final _storage = const FlutterSecureStorage();
-  Future<ChefLoginResponse> loginChef({required String nomComplet, required String cni}) async {
+  Future<SharedPreferences> get _prefs => SharedPreferences.getInstance();
+
+  String? _extractMenageIdFromJwt(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length < 2) return null;
+      String payload = parts[1];
+      // Ajouter padding base64
+      while (payload.length % 4 != 0) payload += '=';
+      final decoded = utf8.decode(base64Url.decode(payload));
+      final claims = jsonDecode(decoded);
+      return claims['menageId']?.toString();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<ChefLoginResponse> loginChef({
+    required String email,
+    required String password,
+  }) async {
     final response = await http.post(
       Uri.parse('${AppConfig.baseUrl}${AppConfig.loginChef}'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'nomComplet': nomComplet, 'numeroCni': cni}),
+      body: jsonEncode({'email': email, 'password': password}),
     );
+
     if (response.statusCode == 200) {
-      final data = ChefLoginResponse.fromJson(jsonDecode(response.body));
-      await _storage.write(key: 'jwt_token', value: data.token);
-      await _storage.write(key: 'refresh_token', value: data.refreshToken);
-      await _storage.write(key: 'chef_id', value: data.chefId);
-      await _storage.write(key: 'menage_id', value: data.menageId);
-      await _storage.write(key: 'nom', value: data.nomComplet);
-      return data;
+      final json = jsonDecode(response.body);
+      if (json['role'] != 'CHEF_MENAGE') {
+        throw Exception('Ce compte n\'est pas un Chef de ménage.');
+      }
+
+      final accessToken = json['accessToken'] ?? '';
+      // Extraire menageId depuis le JWT
+      final menageId = json['menageId'] ?? _extractMenageIdFromJwt(accessToken) ?? '';
+
+      final prefs = await _prefs;
+      await prefs.setString('jwt_token',     accessToken);
+      await prefs.setString('refresh_token', json['refreshToken'] ?? '');
+      await prefs.setString('chef_id',       json['userId'] ?? '');
+      await prefs.setString('menage_id',     menageId);
+      await prefs.setString('nom',           json['fullName'] ?? '');
+
+      return ChefLoginResponse.fromJson({...json, 'menageId': menageId});
     } else if (response.statusCode == 401) {
-      throw Exception('NOM ou CNI incorrect.');
+      throw Exception('Email ou mot de passe incorrect.');
     } else if (response.statusCode == 423) {
-      throw Exception('Compte bloque. Contactez un agent.');
+      throw Exception('Compte bloqué. Contactez un agent.');
     } else {
       throw Exception('Erreur de connexion (${response.statusCode}).');
     }
   }
-  Future<String?> getToken() => _storage.read(key: 'jwt_token');
-  Future<String?> getMenageId() => _storage.read(key: 'menage_id');
-  Future<String?> getNom() => _storage.read(key: 'nom');
-  Future<bool> isLoggedIn() async { final t = await getToken(); return t != null && t.isNotEmpty; }
-  Future<void> logout() async { await _storage.deleteAll(); }
+
+  Future<String?> getToken() async {
+    final prefs = await _prefs;
+    return prefs.getString('jwt_token');
+  }
+
+  Future<String?> getMenageId() async {
+    final prefs = await _prefs;
+    return prefs.getString('menage_id');
+  }
+
+  Future<String?> getNom() async {
+    final prefs = await _prefs;
+    return prefs.getString('nom');
+  }
+
+  Future<bool> isLoggedIn() async {
+    final t = await getToken();
+    return t != null && t.isNotEmpty;
+  }
+
+  Future<void> logout() async {
+    final prefs = await _prefs;
+    await prefs.clear();
+  }
 }
