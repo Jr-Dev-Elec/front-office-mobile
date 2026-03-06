@@ -25,9 +25,9 @@ const RESOURCES = {"assets/shaders/ink_sparkle.frag": "ecc85a2e95f5e9f53123dcaf8
 "canvaskit/canvaskit.wasm": "3d2a2d663e8c5111ac61a46367f751ac",
 "canvaskit/skwasm.js": "445e9e400085faead4493be2224d95aa",
 "canvaskit/skwasm.worker.js": "bfb704a6c714a75da9ef320991e88b03",
-"index.html": "7900b0490d5b4497180f0681d00de0f0",
-"/": "7900b0490d5b4497180f0681d00de0f0",
-"main.dart.js": "8f99daf4206967bebc3acaa7ec9f9d7b",
+"index.html": "95a27ae9617d014379a97a556fd3545b",
+"/": "95a27ae9617d014379a97a556fd3545b",
+"main.dart.js": "67af15fcbfb85cd299c13437a3915cd7",
 "version.json": "07212228df799f5fc70952d3d77e4a1e",
 "manifest.json": "a105afcf547a34664e6465ff91022c53",
 "flutter.js": "c71a09214cb6f5f8996a531350400a9a"};
